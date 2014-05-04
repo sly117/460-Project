@@ -10,34 +10,43 @@ import re
 import urllib2
 import zipfile
 import cgi
+import ftplib
+import postfile
+import os
 
 #Email Information
 account = "cs460zipdump@gmail.com"
 password = "Class-Test-2014"
 
 #Login to gmail and enter inbox
+print "Logging into mail account\n"
 mail = imaplib.IMAP4_SSL('imap.gmail.com')
 mail.login(account, password)
+print "Login Successful\n"
 mail.list()
 mail.select("inbox")
 
 #Grab Email Bodies
+print "Grabbing Email body to parse for URL\n"
 charset, data = mail.uid('search', None, "ALL")
 recentUnreadID = data[0].split()[-1]
 charset, data = mail.uid('fetch', recentUnreadID, '(RFC822)')
 raw_mail = data[0][1]
-print raw_mail
+#print raw_mail
 
 #Regex to parse out URLs
-x = re.compile(r"http://(\w*[.])*(\w*/)*(\w*[-]\w*)*[?](\w*[-]\w*)*")
+x = re.compile(r"http://(\w*[.])*(\w*/)*(\w*[-]\w*)*[?]\w*(\w*[-]\w*)*")
  
 url = x.search(raw_mail).group()
-print url
+print "URL found\n"
+#print url
 
 #Open URL and grab filename
+print "Searching URL for filename\n"
 zfile = urllib2.urlopen(url)
 _,params = cgi.parse_header(zfile.headers.get('Content-Disposition', ''))
 filename = params['filename']
+print "Filename found\n"
 
 #Download the file
 print "Beginning File Download\n"
@@ -48,32 +57,36 @@ with open(filename, "wb") as code:
 print "Download Complete\n"
 
 #Unzip the file
+print "Unzipping file\n"
 with zipfile.ZipFile(filename, "r") as z:
     z.extractall()
+print "Unzip Complete\n"
 
+'''
 #Upload the file to vxcage
 # UNTESTED CODE CORRECT IN THEORY
-import os
 pathname = '/malware/'+sort+'/'+md5(fopen(filename))
 scpquery = 'scp ' + filename + ' credentials@vxcage.internetcrimefighter.org:' + pathname
 os.system(scpquery)
-
+'''
+'''
 #Upload the file to virus total
-import postfile
+print "Uploading to virus total\n"
 host = "www.virustotal.com"
 selector = "https://www.virustotal.com/vtapi/v2/file/scan"
 fields = [("apikey", "")]
 file_to_send = open(filename, "rb").read()
 files = [("file", filename, file_to_send)]
 json = postfile.post_multipart(host, selector, fields, files)
+print "Upload successful\n"
 
+'''
 #Upload the file to totalhash
-import ftplib
-session = ftplib.FTP('ftp://totalhash.com','upload','totalhash')
+print "Beginning FTP uplaod to totalhash"
+ftpserver = '198.100.146.47' #totalhash.com
+session = ftplib.FTP(ftpserver,'upload','totalhash')
 f = open(filename,'rb')                  # file to send
 session.storbinary(filename, f)     # send the file
 f.close()                                    # close file and FTP
 session.quit()
-
-
-
+print "Upload complete"
