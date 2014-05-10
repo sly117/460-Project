@@ -16,7 +16,7 @@ import os
 import sys
 
 
-def grabFile(raw):
+def grabFile(raw, sort):
     #Regex to parse out URLs
     x = re.compile(r"http://(\w*[.])*(\w*/)*(\w*[-]\w*)*[?]\w*(\w*[-]\w*)*")
      
@@ -49,7 +49,7 @@ def grabFile(raw):
     #Upload the file to vxcage
     # UNTESTED CODE CORRECT IN THEORY
     pathname = '/malware/'+sort+'/'+md5(fopen(filename))
-    scpquery = 'scp ' + filename + ' credentials@vxcage.internetcrimefighter.org:' + pathname
+    scpquery = 'scp ' + filename + ' intake@vxcage.internetcrimefighter.org:' + pathname
     os.system(scpquery)
     
     #Upload the file to virus total
@@ -105,7 +105,7 @@ def main():
     typ, data = mail.search(None, subject, "ALL")
     for num in data[0].split():
         typ, data = mail.fetch(num, '(RFC822)')
-        grabFile(data[0][1])
+        grabFile(data[0][1], subject)
     mail.close()
     mail.logout()
     
